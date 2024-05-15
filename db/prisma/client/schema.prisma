@@ -1,0 +1,59 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider      = "prisma-client-js"
+    output        = "./client"
+    binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+model User {
+    id                String    @id @default(uuid())
+    confirmationCode  Int?
+    passwordhash      String?
+    authMethod        String?
+    name              String?
+    email             String    @unique
+    emailVerified     DateTime?
+    image             String?
+    accounts          Account[]
+    sessions          Session[]
+    createdAt         DateTime  @default(now())
+    updatedAt         DateTime  @default(now())
+    username          String?   @unique
+    description       String?
+    gender            String?
+    birthday          String?
+    university        String?
+    tutorialCompleted Boolean?  @default(false)
+    signupCompleted   Boolean?  @default(false)
+}
+
+model Session {
+    id String @id @default(uuid())
+
+    sessionToken String   @unique
+    userId       String
+    expires      DateTime
+    user         User     @relation(fields: [userId], references: [id])
+}
+
+model Account {
+    id                String  @id @default(uuid())
+    userId            String
+    type              String
+    provider          String
+    providerAccountId String
+    refresh_token     String? // @db.Text
+    access_token      String? // @db.Text
+    expires_at        Int?
+    token_type        String?
+    scope             String?
+    id_token          String? // @db.Text
+    session_state     String?
+    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([provider, providerAccountId])
+}
